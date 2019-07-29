@@ -42,7 +42,7 @@ void interface(void)
 	stringToScreen("Days:", enabled_gpio);
 }
 
-void enter_time_values(void)
+void enter_time_values(int *mins_ex, int *hours_ex, int *days_ex)
 {
 	//Define Pointers
 	char pc1[4];
@@ -63,6 +63,7 @@ void enter_time_values(void)
 	int Enter_hours=0;
 	int Enter_days=0;
 	int full_input=0;
+
 
 while(full_input==0)
 {
@@ -331,18 +332,26 @@ while(is_low(8, TTRbuttonEnter))
 				}
 		}
 	sleep(1);
+
 	full_input=1;
 
 	printf("\n Days SET");
 	printf("\n Time Interval Mins: %.0f", i_mins);
 	printf("\n Time Interval Hours: %.0f", i_hours);
 	printf("\n Time Interval Days: %.0f", i_days);
+
+
+	//Export Times
+	*mins_ex=i_mins;
+	*hours_ex=i_hours;
+	*days_ex=i_days;
 }
 
 }
 
 
-int8_t set_refresh_rate(char refresh_rate_act[])
+//char set_refresh_rate(char refresh_rate_act[3])
+int8_t set_refresh_rate()
 {
 	unsigned int full_input=0;
 	unsigned int Enter_rr=0;
@@ -438,26 +447,29 @@ int8_t set_refresh_rate(char refresh_rate_act[])
 				}
 			}
 		}
+
 	Enter_rr=1;
 	}
 	//Refresh Rate SET
 	full_input=1;
 	printf("\n Refresh rate is: %d s", refresh_rate);
-	sprintf(refresh_rate_act, "%d", refresh_rate);
 	}
-	return(1);
+	return(refresh_rate);
 }
 
 void save_temp_readings(void)
 {
-	char* refresh_rate_act[21];
 	int refresh_rate;
 
+	int mins, hours, days;
+	//Enter Times
+	enter_time_values(&mins, &hours, &days);
+	printf("\n Mins: %d \n Hours: %d \n Days: %d", mins, hours, days);
+
+
 	//Set Refresh Rate
-	set_refresh_rate(refresh_rate_act);
-	sscanf(refresh_rate_act, "%d", &refresh_rate);
-
-
+	refresh_rate=set_refresh_rate();
+	printf("\n Refresh rate entered: %d", refresh_rate);
 }
 
 void temptimeread(void)
@@ -467,12 +479,11 @@ void temptimeread(void)
 	interface();
 	sleep(1);
 
-	//Enter Time Values
-	enter_time_values();
-	printf("\n Times Entered");
+
 
 	//Save Temperature Readings
 	save_temp_readings();
+
 
 }
 
