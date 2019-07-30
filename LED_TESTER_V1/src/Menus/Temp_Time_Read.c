@@ -42,6 +42,36 @@ void interface(void)
 	stringToScreen("Days:", enabled_gpio);
 }
 
+struct ds18b20
+	{
+	char devPath[128];
+	char devID[16];
+	char tempData[6];
+	struct ds18b20 *next;
+	};
+
+float temperatureexport(void)
+	{
+	struct ds18b20 *rootNode;
+	struct ds18b20 *devNode;
+	struct ds18b20 *getTemp;
+	char* tempAct[2];
+	float tempActFL;
+
+			// Load pin configuration. Ignore error if already loaded
+			system("echo w1 > /sys/devices/bone_capemgr.9/slots>/dev/null");
+
+				devNode = rootNode;
+				getTemp = rootNode;
+				findDevices(devNode);
+				//printf("\n Found %d devices\n\n", devCnt);
+				readTemp(getTemp, tempAct);
+				//Actual Temperature Float
+				sscanf(tempAct, "%f", &tempActFL);
+
+			return(tempActFL);
+	}
+
 void enter_time_values(int *mins_ex, int *hours_ex, int *days_ex)
 {
 	//Define Pointers
@@ -459,18 +489,57 @@ int8_t set_refresh_rate()
 
 void save_temp_readings(void)
 {
+	float temperature;
+
 	int refresh_rate;
 
 	int mins, hours, days;
+
+	float count_mins=0;
+
 	//Enter Times
 	enter_time_values(&mins, &hours, &days);
 	printf("\n Mins: %d \n Hours: %d \n Days: %d", mins, hours, days);
 
-
 	//Set Refresh Rate
 	refresh_rate=set_refresh_rate();
 	printf("\n Refresh rate entered: %d", refresh_rate);
+
+	//Set Temperature
+	temperature=temperatureexport();
+	printf("\n Temperature is: %f", temperature);
+
+	//Save Date in CSV file
+	char tempsave[100];
+	//Create File
+	system("echo TEMPERATURE,DATE > /home/puka/Led_Tester_V1/TempTimeRead/Data/TempTimeRead_$(date +%F_%T).csv");
+
+	switch (refresh_rate)
+	{
+	case 1:
+		while(mins>=count_mins)
+		{
+			//sleep(refresh_rate);
+			count_mins=(1+count_mins)/60;
+			temperature=temperatureexport();
+			sprintf(tempsave,"echo Temp:%.1f > /home/puka/Led_Tester_V1/TempTimeRead/BuffTemp.txt",temperature);
+			system(tempsave);
+			//Save Temp and Date
+			system("/bin/bash /home/puka/Led_Tester_V1/TempTimeRead/Data/TempTimeRead.sh");
+			printf("\n Temperature is: %f", temperature);
+			printf("\n Counted minutes: %f", count_mins);
+		}
+		break;
+
+	case 10:
+
+		break;
+	case 60:
+
+		break;
+	}
 }
+
 
 void temptimeread(void)
 {

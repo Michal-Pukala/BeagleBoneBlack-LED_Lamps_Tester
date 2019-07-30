@@ -298,7 +298,7 @@ struct ds18b20
 	struct ds18b20 *next;
 	};
 
-void templiveread(void)
+int8_t templiveread(void)
 	{
 	struct ds18b20 *rootNode;
 	struct ds18b20 *devNode;
@@ -382,6 +382,7 @@ void templiveread(void)
 				//Free Temperature Sens Memory
 				free(rootNode);
 	}
+
 //Press Back Button, return to KeyLoop
 KeyLoop();
 }

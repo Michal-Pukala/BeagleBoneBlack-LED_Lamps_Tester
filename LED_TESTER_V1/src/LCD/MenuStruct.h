@@ -38,6 +38,6 @@ void key_next_press(void);
 void key_prev_press(void);
 void key_enter_press(void);
 void key_back_press(void);
-void templiveread(void);
+int8_t templiveread(void);
 
 #endif /* MENUSTRUCT_H_ */
