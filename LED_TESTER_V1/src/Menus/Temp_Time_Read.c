@@ -495,8 +495,6 @@ void save_temp_readings(void)
 
 	int mins, hours, days;
 
-	float count_mins=0;
-
 	//Enter Times
 	enter_time_values(&mins, &hours, &days);
 	printf("\n Mins: %d \n Hours: %d \n Days: %d", mins, hours, days);
@@ -511,16 +509,23 @@ void save_temp_readings(void)
 
 	//Save Date in CSV file
 	char tempsave[100];
+	float count_mins;
+	float count_mins_plus=0;
+	int fulltime=0;
+
+	//Sum FullTime
+	fulltime=(mins+(hours*60)+(days*24*60));
 	//Create File
 	system("echo TEMPERATURE,DATE > /home/puka/Led_Tester_V1/TempTimeRead/Data/TempTimeRead_$(date +%F_%T).csv");
 
 	switch (refresh_rate)
 	{
 	case 1:
-		while(mins>=count_mins)
+		while(fulltime>=count_mins)
 		{
 			//sleep(refresh_rate);
-			count_mins=(1+count_mins)/60;
+			count_mins_plus++;
+			count_mins=count_mins_plus/60;
 			temperature=temperatureexport();
 			sprintf(tempsave,"echo Temp:%.1f > /home/puka/Led_Tester_V1/TempTimeRead/BuffTemp.txt",temperature);
 			system(tempsave);
@@ -532,10 +537,34 @@ void save_temp_readings(void)
 		break;
 
 	case 10:
-
+	while(fulltime>=count_mins)
+	{
+		sleep(refresh_rate-1);
+		count_mins_plus=count_mins_plus+10;
+		count_mins=(count_mins_plus)/60.0;
+		temperature=temperatureexport();
+		sprintf(tempsave,"echo Temp:%.1f > /home/puka/Led_Tester_V1/TempTimeRead/BuffTemp.txt",temperature);
+		system(tempsave);
+		//Save Temp and Date
+		system("/bin/bash /home/puka/Led_Tester_V1/TempTimeRead/Data/TempTimeRead.sh");
+		printf("\n Temperature is: %f", temperature);
+		printf("\n Counted minutes: %f", count_mins);
+	}
 		break;
 	case 60:
-
+	while(fulltime>=count_mins)
+		{
+			sleep(refresh_rate-1);
+			count_mins_plus=count_mins_plus+60;
+			count_mins=(count_mins_plus)/60.0;
+			temperature=temperatureexport();
+			sprintf(tempsave,"echo Temp:%.1f > /home/puka/Led_Tester_V1/TempTimeRead/BuffTemp.txt",temperature);
+			system(tempsave);
+			//Save Temp and Date
+			system("/bin/bash /home/puka/Led_Tester_V1/TempTimeRead/Data/TempTimeRead.sh");
+			printf("\n Temperature is: %f", temperature);
+			printf("\n Counted minutes: %f", count_mins);
+			}
 		break;
 	}
 }
