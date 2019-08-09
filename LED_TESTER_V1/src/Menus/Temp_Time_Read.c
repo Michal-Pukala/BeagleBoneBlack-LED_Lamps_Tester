@@ -16,17 +16,51 @@
 #include "../LCD/beagle_gpio.h"
 #include "../LCD/beagle_hd44780.h"
 
+#define USBPath "\
+#!/bin/bash \n\
+path=`ls -l /dev/disk/by-id/usb* | tail -1 | tail -c 5` \n\
+mkdir ~/USBStick \n\
+mount /dev/$path ~/USBStick \n\
+"
+#define SaveTemp "\
+#!/bin/bash \n\
+d=`date +%F_%T` \n\
+temp=`cat /home/puka/Led_Tester_V1/TempTimeRead/BuffTemp.txt | tail -c 5` \n\
+fn=`ls -lt ~/USBStick | head -2 | grep --color=AUTO \"TempTimeRead.*.csv\"` \n\
+fn=${fn#*TempTimeRead} \n\
+echo \"$temp,$d\" >> \"/root/USBStick/TempTimeRead$fn\" \n\
+cat \"/root/USBStick/TempTimeRead$fn\" \n\
+"
+
 //Buttons Define
 int TTRbuttonBack = 41;
 int TTRbuttonEnter = 17;
 int TTRbuttonPrev = 15;
 int TTRbuttonNext = 16;
 
-//LCD Define
+//LCD Defines
+int selectedPin[]={P8_14,P8_12,P8_11,P9_15,P9_13,P9_12};
+//const char *pinDescription[] = {"DB7","DB6","DB5","DB4","RS","E"};
 struct gpioID enabled_gpio[6];
+
+void LCDReset(void)
+{
+	terminate_Screen(enabled_gpio,selectedPin);
+	initialize_Screen(enabled_gpio,selectedPin);
+	clear_Screen(enabled_gpio);
+}
+
+void Startscreen(void)
+	{
+		clear_Screen(enabled_gpio);
+		goto_ScreenLine(0, enabled_gpio);
+		stringToScreen("Measurement...", enabled_gpio);
+	}
 
 void interface(void)
 {
+	terminate_Screen(enabled_gpio,selectedPin);
+	initialize_Screen(enabled_gpio,selectedPin);
 	clear_Screen(enabled_gpio);
 	//LCD Line 1
 	goto_ScreenLine(0, enabled_gpio);
@@ -58,12 +92,15 @@ float temperatureexport(void)
 	char* tempAct[2];
 	float tempActFL;
 
+
 			// Load pin configuration. Ignore error if already loaded
 			system("echo w1 > /sys/devices/bone_capemgr.9/slots>/dev/null");
 
 				devNode = rootNode;
 				getTemp = rootNode;
 				findDevices(devNode);
+
+
 				//printf("\n Found %d devices\n\n", devCnt);
 				readTemp(getTemp, tempAct);
 				//Actual Temperature Float
@@ -495,6 +532,18 @@ void save_temp_readings(void)
 
 	int mins, hours, days;
 
+	//Save Date in CSV file
+	char tempsave[100];
+	float count_mins;
+	float count_mins_plus=0;
+	int fulltime=0;
+
+	void temptimereadscreen(void)
+		{
+			goto_ScreenLine(0, enabled_gpio);
+			stringToScreen("Complete...", enabled_gpio);
+		}
+
 	//Enter Times
 	enter_time_values(&mins, &hours, &days);
 	printf("\n Mins: %d \n Hours: %d \n Days: %d", mins, hours, days);
@@ -503,20 +552,18 @@ void save_temp_readings(void)
 	refresh_rate=set_refresh_rate();
 	printf("\n Refresh rate entered: %d", refresh_rate);
 
+	Startscreen();
 	//Set Temperature
 	temperature=temperatureexport();
 	printf("\n Temperature is: %f", temperature);
 
-	//Save Date in CSV file
-	char tempsave[100];
-	float count_mins;
-	float count_mins_plus=0;
-	int fulltime=0;
 
 	//Sum FullTime
 	fulltime=(mins+(hours*60)+(days*24*60));
+	//Mount USBPath
+	system(USBPath);
 	//Create File
-	system("echo TEMPERATURE,DATE > /home/puka/Led_Tester_V1/TempTimeRead/Data/TempTimeRead_$(date +%F_%T).csv");
+	system("sudo echo TEMPERATURE,DATE > ~/USBStick/TempTimeRead_$(date +%F).csv");
 
 	switch (refresh_rate)
 	{
@@ -530,9 +577,10 @@ void save_temp_readings(void)
 			sprintf(tempsave,"echo Temp:%.1f > /home/puka/Led_Tester_V1/TempTimeRead/BuffTemp.txt",temperature);
 			system(tempsave);
 			//Save Temp and Date
-			system("/bin/bash /home/puka/Led_Tester_V1/TempTimeRead/Data/TempTimeRead.sh");
+			system(SaveTemp);
 			printf("\n Temperature is: %f", temperature);
 			printf("\n Counted minutes: %f", count_mins);
+			//temptimereadscreen();
 		}
 		break;
 
@@ -546,9 +594,10 @@ void save_temp_readings(void)
 		sprintf(tempsave,"echo Temp:%.1f > /home/puka/Led_Tester_V1/TempTimeRead/BuffTemp.txt",temperature);
 		system(tempsave);
 		//Save Temp and Date
-		system("/bin/bash /home/puka/Led_Tester_V1/TempTimeRead/Data/TempTimeRead.sh");
+		system(SaveTemp);
 		printf("\n Temperature is: %f", temperature);
 		printf("\n Counted minutes: %f", count_mins);
+		//temptimereadscreen();
 	}
 		break;
 	case 60:
@@ -561,12 +610,16 @@ void save_temp_readings(void)
 			sprintf(tempsave,"echo Temp:%.1f > /home/puka/Led_Tester_V1/TempTimeRead/BuffTemp.txt",temperature);
 			system(tempsave);
 			//Save Temp and Date
-			system("/bin/bash /home/puka/Led_Tester_V1/TempTimeRead/Data/TempTimeRead.sh");
+			system(SaveTemp);
 			printf("\n Temperature is: %f", temperature);
 			printf("\n Counted minutes: %f", count_mins);
+			//temptimereadscreen();
 			}
 		break;
 	}
+	LCDReset();
+	temptimereadscreen();
+	KeyLoop();
 }
 
 

@@ -29,6 +29,8 @@ void LCDreset(void)
 {
 	initialize_Screen(enabled_gpio,selectedPins);
 	clear_Screen(enabled_gpio);
+	terminate_Screen(enabled_gpio,selectedPins);
+	initialize_Screen(enabled_gpio,selectedPins);
 }
 
 void GPIOreset(void)

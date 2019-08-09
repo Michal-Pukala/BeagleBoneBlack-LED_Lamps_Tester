@@ -18,16 +18,17 @@
 #include "MenuStruct.h"
 #include "../Include/Led_Tester_V1_Inc.h"
 #include "../Include/Temp_Time_Read.h"
+#include "../Include/Lux_Read_Live.h"
 
 #define LCD_ROWS 4
 
 
 // definition of menu's components: (*name, *next, *prev, *child, *parent, (*menu_function))
-menu_t menu1 = { "Temp_Test", &menu2, &menu6, &sub_menu1_1, NULL, NULL };
+menu_t menu1 = { "Temp Test", &menu2, &menu6, &sub_menu1_1, NULL, NULL };
 	menu_t sub_menu1_1 = { "Temp Live Read", &sub_menu1_2, &sub_menu1_2, NULL, &menu1, templiveread };
 	menu_t sub_menu1_2 = { "Temp Time Read", NULL, &sub_menu1_1, NULL, &menu1, temptimeread };
-menu_t menu2 = { "ELEMENT 2", &menu3, &menu1, &sub_menu2_1, NULL, NULL };
-	menu_t sub_menu2_1 = { "ELEMENT 2_1", &sub_menu2_2, &sub_menu2_4, NULL, &menu2, NULL };
+menu_t menu2 = { "Lux Test", &menu3, &menu1, &sub_menu2_1, NULL, NULL };
+	menu_t sub_menu2_1 = { "Lux Live Read", &sub_menu2_2, &sub_menu2_4, NULL, &menu2, lux_live_read };
 	menu_t sub_menu2_2 = { "ELEMENT 2_2", &sub_menu2_3, &sub_menu2_1, &sub_menu2_2_1, &menu2, NULL };
 		menu_t sub_menu2_2_1 = { "ELEMENT 2_2_1", &sub_menu2_2_2, &sub_menu2_2_5, NULL, &sub_menu2_2, NULL };
 		menu_t sub_menu2_2_2 = { "ELEMENT 2_2_2", &sub_menu2_2_3, &sub_menu2_2_1, NULL, &sub_menu2_2, NULL };
