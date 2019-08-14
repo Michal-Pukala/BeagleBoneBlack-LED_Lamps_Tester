@@ -19,6 +19,7 @@
 #include "../Include/Led_Tester_V1_Inc.h"
 #include "../Include/Temp_Time_Read.h"
 #include "../Include/Lux_Read_Live.h"
+#include "../Include/Lux_Time_Read.h"
 
 #define LCD_ROWS 4
 
@@ -28,15 +29,9 @@ menu_t menu1 = { "Temp Test", &menu2, &menu6, &sub_menu1_1, NULL, NULL };
 	menu_t sub_menu1_1 = { "Temp Live Read", &sub_menu1_2, &sub_menu1_2, NULL, &menu1, templiveread };
 	menu_t sub_menu1_2 = { "Temp Time Read", NULL, &sub_menu1_1, NULL, &menu1, temptimeread };
 menu_t menu2 = { "Lux Test", &menu3, &menu1, &sub_menu2_1, NULL, NULL };
-	menu_t sub_menu2_1 = { "Lux Live Read", &sub_menu2_2, &sub_menu2_4, NULL, &menu2, lux_live_read };
-	menu_t sub_menu2_2 = { "ELEMENT 2_2", &sub_menu2_3, &sub_menu2_1, &sub_menu2_2_1, &menu2, NULL };
-		menu_t sub_menu2_2_1 = { "ELEMENT 2_2_1", &sub_menu2_2_2, &sub_menu2_2_5, NULL, &sub_menu2_2, NULL };
-		menu_t sub_menu2_2_2 = { "ELEMENT 2_2_2", &sub_menu2_2_3, &sub_menu2_2_1, NULL, &sub_menu2_2, NULL };
-		menu_t sub_menu2_2_3 = { "ELEMENT 2_2_3", &sub_menu2_2_4, &sub_menu2_2_2, NULL, &sub_menu2_2, NULL };
-		menu_t sub_menu2_2_4 = { "ELEMENT 2_2_4", &sub_menu2_2_5, &sub_menu2_2_3, NULL, &sub_menu2_2, NULL };
-		menu_t sub_menu2_2_5 = { "ELEMENT 2_2_5", NULL, &sub_menu2_2_4, NULL, &sub_menu2_2, NULL };
-	menu_t sub_menu2_3 = { "ELEMENT 2_3", &sub_menu2_4, &sub_menu2_2, NULL, &menu2, NULL };
-	menu_t sub_menu2_4 = { "ELEMENT 2_4", NULL, &sub_menu2_3, NULL, &menu2, NULL };
+	menu_t sub_menu2_1 = { "Lux Live Read", &sub_menu2_2, &sub_menu2_2, NULL, &menu2, lux_live_read };
+	menu_t sub_menu2_2 = { "Lux Time Read", NULL, &sub_menu2_1, NULL, &menu2, luxtimeread };
+		//menu_t sub_menu2_2_5 = { "ELEMENT 2_2_5", NULL, &sub_menu2_2_4, NULL, &sub_menu2_2, NULL };
 menu_t menu3 = { "ELEMENT 3", &menu4, &menu2, NULL, NULL, NULL };
 menu_t menu4 = { "ELEMENT 4", &menu5, &menu3, NULL, NULL, NULL };
 menu_t menu5 = { "ELEMENT 5", &menu6, &menu4, NULL, NULL, NULL };

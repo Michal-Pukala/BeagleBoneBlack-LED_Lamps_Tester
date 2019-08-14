@@ -14,13 +14,6 @@
 #include <stdint.h>
 #include <dirent.h>
 #include <fcntl.h>
-#include <linux/i2c.h>
-#include <linux/i2c-dev.h>
-#include <sys/ioctl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <errno.h>
-#include <unistd.h>
 
 #include "../LCD/iolib.h"
 #include "../LCD/beagle_gpio.h"
@@ -52,23 +45,24 @@ int LXbuttonEnter = 17;
 int LXbuttonPrev = 15;
 int LXbuttonNext = 16;
 
-float lux_read(void)
+float lux_read(float *luxexp)
 {
-	int file;
+	//int file;
 	char *filename = "/root/LED_Tester_V1/LuxRead/buf";
 	float lux=0;
-
+	int i;
 
 		system(luxreadpy);
-		sleep(1);
-		file = fopen(filename, "r");
-		fscanf(file, "%f", &lux);
-		if(!feof (file))
-		{
-			printf("\n Lux: %f", lux);
-		}else;
+		//sleep(1);
+			FILE *file = fopen(filename, "r");
+			fscanf(file, "%f", &lux);
+			if(!feof (file))
+			{
+				//printf("\n Lux: %f", lux);
+			}
+			fclose(file);
 
-		fclose(file);
+			*luxexp=lux;
 
 	return(lux);
 }
@@ -101,8 +95,8 @@ void lux_live(void)
 	while (is_low(9, LXbuttonBack))
 	{
 		//Read Lux
-		lux=lux_read();
-
+		lux=lux_read(&lux);
+		system("date");
 		//Refresh Rate
 		refresh_rate_LCD = 1;
 		i++;
