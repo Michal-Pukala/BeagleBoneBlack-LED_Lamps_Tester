@@ -42,7 +42,7 @@ void GPIOreset(void)
 LCDreset();
 GPIOreset();
 
-sleep(2);
+sleep(1);
 menu_refresh();
 
 KeyLoop();

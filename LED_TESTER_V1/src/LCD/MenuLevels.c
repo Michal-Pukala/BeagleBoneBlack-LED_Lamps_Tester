@@ -20,6 +20,8 @@
 #include "../Include/Temp_Time_Read.h"
 #include "../Include/Lux_Read_Live.h"
 #include "../Include/Lux_Time_Read.h"
+#include "../Include/Temp_Lux_Test.h"
+#include "../Include/Run_Test.h"
 
 #define LCD_ROWS 4
 
@@ -32,7 +34,9 @@ menu_t menu2 = { "Lux Test", &menu3, &menu1, &sub_menu2_1, NULL, NULL };
 	menu_t sub_menu2_1 = { "Lux Live Read", &sub_menu2_2, &sub_menu2_2, NULL, &menu2, lux_live_read };
 	menu_t sub_menu2_2 = { "Lux Time Read", NULL, &sub_menu2_1, NULL, &menu2, luxtimeread };
 		//menu_t sub_menu2_2_5 = { "ELEMENT 2_2_5", NULL, &sub_menu2_2_4, NULL, &sub_menu2_2, NULL };
-menu_t menu3 = { "ELEMENT 3", &menu4, &menu2, NULL, NULL, NULL };
+menu_t menu3 = { "TESTS", &menu4, &menu2, &sub_menu3_1, NULL, NULL };
+	menu_t sub_menu3_1 = { "Temp Lux Read", &sub_menu3_2, &sub_menu3_2, NULL, &menu3, templuxtest };
+	menu_t sub_menu3_2 = { "Run Lux Test", NULL, &sub_menu3_1, NULL, &menu3, Run_Test };
 menu_t menu4 = { "ELEMENT 4", &menu5, &menu3, NULL, NULL, NULL };
 menu_t menu5 = { "ELEMENT 5", &menu6, &menu4, NULL, NULL, NULL };
 menu_t menu6 = { "ELEMENT 6", NULL, &menu5, NULL, NULL, NULL };

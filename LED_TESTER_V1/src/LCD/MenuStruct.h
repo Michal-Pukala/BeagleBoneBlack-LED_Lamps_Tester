@@ -25,6 +25,8 @@ menu_t menu2;
 	menu_t sub_menu2_4;
 	menu_t sub_menu2_5;
 menu_t menu3;
+	menu_t sub_menu3_1;
+	menu_t sub_menu3_2;
 menu_t menu4;
 menu_t menu5;
 menu_t menu6;

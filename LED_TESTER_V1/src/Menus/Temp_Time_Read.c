@@ -84,8 +84,9 @@ struct ds18b20
 	struct ds18b20 *next;
 	};
 
-float temperatureexport(void)
+float temperatureexport(float *temp)
 	{
+
 	struct ds18b20 *rootNode;
 	struct ds18b20 *devNode;
 	struct ds18b20 *getTemp;
@@ -106,6 +107,8 @@ float temperatureexport(void)
 				//Actual Temperature Float
 				sscanf(tempAct, "%f", &tempActFL);
 
+			*temp=tempActFL;
+
 			return(tempActFL);
 	}
 
@@ -119,8 +122,8 @@ void enter_time_values(int *mins_ex, int *hours_ex, int *days_ex)
 	char* c_hours[2];
 	char* c_days[2];
 	float i_mins=0;
-	float i_hours;
-	float i_days;
+	float i_hours=0;
+	float i_days=0;
 	char interface_mins[21];
 	char interface_hours[21];
 	char interface_days[21];
@@ -527,6 +530,7 @@ int8_t set_refresh_rate()
 void save_temp_readings(void)
 {
 	float temperature;
+	float temps;
 
 	int refresh_rate;
 
@@ -554,7 +558,7 @@ void save_temp_readings(void)
 
 	Startscreen();
 	//Set Temperature
-	temperature=temperatureexport();
+	temperature=temperatureexport(&temps);
 	printf("\n Temperature is: %f", temperature);
 
 
@@ -573,7 +577,7 @@ void save_temp_readings(void)
 			//sleep(refresh_rate);
 			count_mins_plus++;
 			count_mins=count_mins_plus/60;
-			temperature=temperatureexport();
+			temperature=temperatureexport(&temps);
 			sprintf(tempsave,"echo Temp:%.1f > /home/puka/Led_Tester_V1/TempTimeRead/BuffTemp.txt",temperature);
 			system(tempsave);
 			//Save Temp and Date
@@ -590,7 +594,7 @@ void save_temp_readings(void)
 		sleep(refresh_rate-1);
 		count_mins_plus=count_mins_plus+10;
 		count_mins=(count_mins_plus)/60.0;
-		temperature=temperatureexport();
+		temperature=temperatureexport(&temps);
 		sprintf(tempsave,"echo Temp:%.1f > /home/puka/Led_Tester_V1/TempTimeRead/BuffTemp.txt",temperature);
 		system(tempsave);
 		//Save Temp and Date
@@ -606,7 +610,7 @@ void save_temp_readings(void)
 			sleep(refresh_rate-1);
 			count_mins_plus=count_mins_plus+60;
 			count_mins=(count_mins_plus)/60.0;
-			temperature=temperatureexport();
+			temperature=temperatureexport(&temps);
 			sprintf(tempsave,"echo Temp:%.1f > /home/puka/Led_Tester_V1/TempTimeRead/BuffTemp.txt",temperature);
 			system(tempsave);
 			//Save Temp and Date
