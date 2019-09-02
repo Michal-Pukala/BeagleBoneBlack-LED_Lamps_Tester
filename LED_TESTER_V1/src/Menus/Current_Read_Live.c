@@ -15,6 +15,7 @@
 #include <dirent.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <sys/stat.h>
 
 #include "../LCD/iolib.h"
 #include "../LCD/beagle_gpio.h"
@@ -25,30 +26,27 @@
 temp=`find /sys/ -name '*AIN*' | head -1 | sed 's/\AIN.*/AIN/'` \n\
 echo $temp > /root/LED_Tester_V1/CurrentRead/pathbuf \n\
 "
-#define AINinit "\
-#!/bin/bash \n\
-path=`/sys/devices/bone_capemgr.*/slots` \n\
-echo root | sudo -S echo cape-bone-iio > $path \n\
-"
+#define AINinit "sudo bash /root/LED_Tester_V1/CurrentRead/AINon.sh"
+
+#define pathslots "\
+sudo find /sys/devices/bone_capemgr.*/slots > /root/LED_Tester_V1/CurrentRead/pathslots"
 
 #define AIN 5
 
+#define ms 1000000
+
 struct gpioID enabled_gpio[6];
-
-
 
 char *init_current(void)
 {
 
 	system(AINpath);
 
-	//int file;
-	//char ainpath[33];
 	char *filename = "/root/LED_Tester_V1/CurrentRead/pathbuf";
 	char * buffer = 0;
-	//char * ainexp = 0;
 	long length;
-	FILE * f = fopen (filename, "rb");
+
+	FILE *f = fopen (filename, "rb");
 
 	if (f)
 	{
@@ -64,31 +62,26 @@ char *init_current(void)
 	    buffer[length-1] = 0;
 	  }
 	  fclose (f);
-	  //free(f);
+
 	}
 
 	if (buffer)
 	{
 	  sprintf(buffer, "%s%d", buffer, AIN);
-	  //free(buffer);
+
 
 	}
 	return buffer;
 }
 
-int current_live_read(int *current)
+int *current_live_read(char *ainpath)
 {
 
-	char *ainpath;
-	ainpath=init_current();
-	int curr;
-	//char currbuf[47];
-
-	//sprintf(currbuf, "sudo cat %s >  ~/LED_Tester_V1/CurrentRead/currbuf", ainpath);
-	//printf("%s", currbuf);
+	//ainpath=init_current();
+	int *curr;
 
 	FILE *file = fopen(ainpath, "r");
-	free(ainpath);
+	//free(ainpath);
 
 	if(!file)
 	{
@@ -96,36 +89,47 @@ int current_live_read(int *current)
 	}
 	else
 	{
-		fscanf(file, "%4d", &curr);
-		fclose(file);
-		*current=curr;
+		if(fscanf(file, "%4d", curr))
+		{
+			fclose(file);
+		}
+		else
+		{
+			printf("Error fscanf: %s\n", strerror(errno));
+		}
+		//*current=curr;
 	}
 
-	free(file);
+	//free(file);
 
 
-	return(0);
+	return curr;
 }
 
 void current_read(void)
 {
-	system(AINinit);
-	//system("sudo echo cape-bone-iio > /sys/devices/bone_capemgr.*/slots");  //Init ADC
-	init_current();
 
-	int current;
+	system(AINinit);
+	sleep(1);
+
+	char *ainpath;
+
+	ainpath=init_current();
+
+	int *current;
 	float avgcurr=0;
 	float allcurr=0;
 	int i=0;
 
-	while(1)
+	while(i<10)
 	{
 	sleep(1);
 	i++;
-	current_live_read(&current);
-	allcurr=allcurr+current;
+	current=current_live_read(ainpath);
+	allcurr=allcurr+*current;
 	avgcurr=allcurr/i;
-	printf("\n Current: %d AVG: %f", current, avgcurr);
+	printf("\n Current: %d AVG: %f", *current, avgcurr);
+	//free(current);
 	}
 
 }
