@@ -25,10 +25,11 @@ mount /dev/$path ~/USBStick \n\
 #define SaveTemp "\
 #!/bin/bash \n\
 d=`date +%F_%T` \n\
-temp=`cat /home/puka/Led_Tester_V1/TempTimeRead/BuffTemp.txt | tail -c 5` \n\
+tempout=`cat /home/puka/Led_Tester_V1/TempTimeRead/BuffTempOUT.txt | tail -c 5` \n\
+tempin=`cat /home/puka/Led_Tester_V1/TempTimeRead/BuffTempIN.txt | tail -c 5` \n\
 fn=`ls -lt ~/USBStick | head -2 | grep --color=AUTO \"TempTimeRead.*.csv\"` \n\
 fn=${fn#*TempTimeRead} \n\
-echo \"$temp,$d\" >> \"/root/USBStick/TempTimeRead$fn\" \n\
+echo \"$tempout,$tempin,$d\" >> \"/root/USBStick/TempTimeRead$fn\" \n\
 cat \"/root/USBStick/TempTimeRead$fn\" \n\
 "
 
@@ -42,6 +43,7 @@ int TTRbuttonNext = 16;
 int selectedPin[]={P8_14,P8_12,P8_11,P9_15,P9_13,P9_12};
 //const char *pinDescription[] = {"DB7","DB6","DB5","DB4","RS","E"};
 struct gpioID enabled_gpio[6];
+
 
 void LCDReset(void)
 {
@@ -84,32 +86,37 @@ struct ds18b20
 	struct ds18b20 *next;
 	};
 
-float temperatureexport(float *temp)
+void temperatureexport(float *tempOUT, float *tempIN)
 	{
-
 	struct ds18b20 *rootNode;
 	struct ds18b20 *devNode;
 	struct ds18b20 *getTemp;
-	char* tempAct[2];
-	float tempActFL;
+
+	char* tempActOUT[2];
+	float tempOUTFL;
+	char* tempActIN[2];
+	float tempINFL;
 
 
-			// Load pin configuration. Ignore error if already loaded
-			system("echo w1 > /sys/devices/bone_capemgr.9/slots>/dev/null");
+	// Load pin configuration. Ignore error if already loaded
+	system("echo w1 > /sys/devices/bone_capemgr.9/slots>/dev/null");
 
-				devNode = rootNode;
-				getTemp = rootNode;
-				findDevices(devNode);
+	rootNode = malloc(sizeof(struct ds18b20));
+	devNode = rootNode;
+	getTemp = rootNode;
+	findDevices(devNode);
 
 
-				//printf("\n Found %d devices\n\n", devCnt);
-				readTemp(getTemp, tempAct);
-				//Actual Temperature Float
-				sscanf(tempAct, "%f", &tempActFL);
+	//printf("\n Found %d devices\n\n", devCnt);
+	readTemp(getTemp, tempActOUT, tempActIN);
+	//Actual Temperature Float
+	sscanf(tempActOUT, "%f", &tempOUTFL);
+	sscanf(tempActIN, "%f", &tempINFL);
 
-			*temp=tempActFL;
+			*tempOUT=tempOUTFL;
+			*tempIN=tempINFL;
 
-			return(tempActFL);
+			free(rootNode);
 	}
 
 void enter_time_values(int *mins_ex, int *hours_ex, int *days_ex)
@@ -529,16 +536,17 @@ int8_t set_refresh_rate()
 
 void save_temp_readings(void)
 {
-	float temperature;
-	float temps;
+	//float temperature;
+	float tempIN, tempOUT;
 
 	int refresh_rate;
 
 	int mins, hours, days;
 
 	//Save Date in CSV file
-	char tempsave[100];
-	float count_mins;
+	char tempOUTsave[100];
+	char tempINsave[100];
+	float count_mins=0;
 	float count_mins_plus=0;
 	int fulltime=0;
 
@@ -558,8 +566,8 @@ void save_temp_readings(void)
 
 	Startscreen();
 	//Set Temperature
-	temperature=temperatureexport(&temps);
-	printf("\n Temperature is: %f", temperature);
+	//temperatureexport(&tempOUT, &tempIN);
+	//printf("\n TempIN is: %f \n TempOUT is: %f", tempIN, tempOUT);
 
 
 	//Sum FullTime
@@ -567,7 +575,7 @@ void save_temp_readings(void)
 	//Mount USBPath
 	system(USBPath);
 	//Create File
-	system("sudo echo TEMPERATURE,DATE > ~/USBStick/TempTimeRead_$(date +%F).csv");
+	system("sudo echo TEMPOUT,TEMPIN,DATE > ~/USBStick/TempTimeRead_$(date +%F).csv");
 
 	switch (refresh_rate)
 	{
@@ -577,12 +585,15 @@ void save_temp_readings(void)
 			//sleep(refresh_rate);
 			count_mins_plus++;
 			count_mins=count_mins_plus/60;
-			temperature=temperatureexport(&temps);
-			sprintf(tempsave,"echo Temp:%.1f > /home/puka/Led_Tester_V1/TempTimeRead/BuffTemp.txt",temperature);
-			system(tempsave);
+			temperatureexport(&tempOUT, &tempIN);
+			sprintf(tempOUTsave,"echo Temp:%.1f > /home/puka/Led_Tester_V1/TempTimeRead/BuffTempOUT.txt",tempOUT);
+			system(tempOUTsave);
+			sprintf(tempINsave,"echo Temp:%.1f > /home/puka/Led_Tester_V1/TempTimeRead/BuffTempIN.txt",tempIN);
+			system(tempINsave);
 			//Save Temp and Date
 			system(SaveTemp);
-			printf("\n Temperature is: %f", temperature);
+			printf("\n TempOUT is: %f", tempOUT);
+			printf("\n TempIN is: %f", tempIN);
 			printf("\n Counted minutes: %f", count_mins);
 			//temptimereadscreen();
 		}
@@ -594,14 +605,16 @@ void save_temp_readings(void)
 		sleep(refresh_rate-1);
 		count_mins_plus=count_mins_plus+10;
 		count_mins=(count_mins_plus)/60.0;
-		temperature=temperatureexport(&temps);
-		sprintf(tempsave,"echo Temp:%.1f > /home/puka/Led_Tester_V1/TempTimeRead/BuffTemp.txt",temperature);
-		system(tempsave);
+		temperatureexport(&tempOUT, &tempIN);
+		sprintf(tempOUTsave,"echo Temp:%.1f > /home/puka/Led_Tester_V1/TempTimeRead/BuffTempOUT.txt",tempOUT);
+		system(tempOUTsave);
+		sprintf(tempINsave,"echo Temp:%.1f > /home/puka/Led_Tester_V1/TempTimeRead/BuffTempIN.txt",tempIN);
+		system(tempINsave);
 		//Save Temp and Date
 		system(SaveTemp);
-		printf("\n Temperature is: %f", temperature);
+		printf("\n TempOUT is: %f", tempOUT);
+		printf("\n TempIN is: %f", tempIN);
 		printf("\n Counted minutes: %f", count_mins);
-		//temptimereadscreen();
 	}
 		break;
 	case 60:
@@ -610,14 +623,16 @@ void save_temp_readings(void)
 			sleep(refresh_rate-1);
 			count_mins_plus=count_mins_plus+60;
 			count_mins=(count_mins_plus)/60.0;
-			temperature=temperatureexport(&temps);
-			sprintf(tempsave,"echo Temp:%.1f > /home/puka/Led_Tester_V1/TempTimeRead/BuffTemp.txt",temperature);
-			system(tempsave);
+			temperatureexport(&tempOUT, &tempIN);
+			sprintf(tempOUTsave,"echo Temp:%.1f > /home/puka/Led_Tester_V1/TempTimeRead/BuffTempOUT.txt",tempOUT);
+			system(tempOUTsave);
+			sprintf(tempINsave,"echo Temp:%.1f > /home/puka/Led_Tester_V1/TempTimeRead/BuffTempIN.txt",tempIN);
+			system(tempINsave);
 			//Save Temp and Date
 			system(SaveTemp);
-			printf("\n Temperature is: %f", temperature);
+			printf("\n TempOUT is: %f", tempOUT);
+			printf("\n TempIN is: %f", tempIN);
 			printf("\n Counted minutes: %f", count_mins);
-			//temptimereadscreen();
 			}
 		break;
 	}

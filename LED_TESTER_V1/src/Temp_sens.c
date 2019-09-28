@@ -55,8 +55,10 @@ int8_t findDevices(struct ds18b20 *d)
 	return 1;
 }
 
-int8_t readTemp(struct ds18b20 *d, char tempAct[2])
+int8_t readTemp(struct ds18b20 *d, char tempOUT[2], char tempIN[2])
 {
+	int u=0;
+
 	//struct ds18b20 *newTemp;
 	while (d->next != NULL) {
 		d = d->next;
@@ -69,13 +71,20 @@ int8_t readTemp(struct ds18b20 *d, char tempAct[2])
 		char buf[256];
 		ssize_t numRead;
 		while ((numRead = read(fd, buf, 256)) > 0) {
-			//newTemp = malloc(sizeof(struct ds18b20));
+			if(u==0)  //TEMP OUT
+			{
 			strncpy(d->tempData, strstr(buf, "t=") + 2, 5);
 			float tempC = strtof(d->tempData, NULL);
-			sprintf(tempAct, "%.1f", tempC / 1000);
-			//printf("Device: %s  - ", d->devID);
-			//printf("Temp: %.3f C  ", tempC / 1000);
-			//printf("%.3f F\n\n", (tempC / 1000) * 9 / 5 + 32);
+			sprintf(tempOUT, "%.1f", tempC / 1000);
+			u=1;
+			}
+			else
+			{
+			//TEMP ON LAMP
+			strncpy(d->tempData, strstr(buf, "t=") + 2, 5);
+			float tempC = strtof(d->tempData, NULL);
+			sprintf(tempIN, "%.1f", tempC / 1000);
+			}
 		}
 		close(fd);
 	}

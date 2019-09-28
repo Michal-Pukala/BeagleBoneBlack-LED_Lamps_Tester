@@ -9,5 +9,7 @@
 #define INCLUDE_TEMP_LUX_TEST_H_
 
 void templuxtest(void);
+int set_tempstart(void);
+void heat_temp(float heat_temp);
 
 #endif /* INCLUDE_TEMP_LUX_TEST_H_ */

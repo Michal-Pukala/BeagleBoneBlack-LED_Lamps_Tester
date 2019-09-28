@@ -36,7 +36,7 @@ menu_t menu2 = { "Lux Test", &menu3, &menu1, &sub_menu2_1, NULL, NULL };
 	menu_t sub_menu2_2 = { "Lux Time Read", NULL, &sub_menu2_1, NULL, &menu2, luxtimeread };
 		//menu_t sub_menu2_2_5 = { "ELEMENT 2_2_5", NULL, &sub_menu2_2_4, NULL, &sub_menu2_2, NULL };
 menu_t menu3 = { "TESTS", &menu4, &menu2, &sub_menu3_1, NULL, NULL };
-	menu_t sub_menu3_1 = { "Temp Lux Read", &sub_menu3_2, &sub_menu3_2, NULL, &menu3, templuxtest };
+	menu_t sub_menu3_1 = { "Test 1", &sub_menu3_2, &sub_menu3_2, NULL, &menu3, templuxtest };
 	menu_t sub_menu3_2 = { "Run Lux Test", NULL, &sub_menu3_1, NULL, &menu3, Run_Test };
 menu_t menu4 = { "Current Test", &menu5, &menu3, NULL, NULL, current_read };
 menu_t menu5 = { "ELEMENT 5", &menu6, &menu4, NULL, NULL, NULL };
@@ -304,9 +304,12 @@ int8_t templiveread(void)
 	struct ds18b20 *rootNode;
 	struct ds18b20 *devNode;
 	struct ds18b20 *getTemp;
-	char* tempAct[2];
-	float tempActFL;
-	char tempActPrint[18];
+	char* tempOUT[2];
+	float tempOUTFL;
+	char* tempIN[2];
+	float tempINFL;
+	char tempOUTPrint[18];
+	char tempINPrint[18];
 	int refresh_rate_LCD;
 	//MaxTemp Definition
 	char tempMaxPrint[18];
@@ -326,23 +329,27 @@ int8_t templiveread(void)
 				getTemp = rootNode;
 				findDevices(devNode);
 				//printf("\n Found %d devices\n\n", devCnt);
-				readTemp(getTemp, tempAct);
+				readTemp(getTemp, tempOUT, tempIN);
 
 				//Refresh Rate
 				refresh_rate_LCD = 1;
 				sleep(refresh_rate_LCD);
 				//Actual Temperature Float
-				sscanf(tempAct, "%f", &tempActFL);
-				printf("\n Temp Act Float: %.1f \n\n", tempActFL);
+				sscanf(tempOUT, "%f", &tempOUTFL);
+				printf("\n TempOUT: %.1f \n\n", tempOUTFL);
+				sscanf(tempIN, "%f", &tempINFL);
+				printf("\n TempIN: %.1f \n\n", tempINFL);
 
 				//Actual Temperature 1s interval
-				printf("\n Temp Act: %s \n\n", tempAct);
-				sprintf(tempActPrint, "Temperature: %s C", tempAct);
+				sprintf(tempOUTPrint, "TempOUT: %s C", tempOUT);
 				goto_ScreenLine(0, enabled_gpio);
-				stringToScreen(tempActPrint, enabled_gpio);
+				stringToScreen(tempOUTPrint, enabled_gpio);
+				sprintf(tempINPrint, "TempIN: %s C", tempIN);
+				goto_ScreenLine(1, enabled_gpio);
+				stringToScreen(tempINPrint, enabled_gpio);
 
 				//Max Temperature
-				buffMax=tempActFL;
+				buffMax=tempOUTFL;
 				if(TempMax==-99)
 				{
 					TempMax=buffMax;
@@ -358,11 +365,11 @@ int8_t templiveread(void)
 				}
 				sprintf(tempMaxPrint, "Max=%.1f C", TempMax);
 				printf("\n %s", tempMaxPrint);
-				goto_ScreenLine(1, enabled_gpio);
+				goto_ScreenLine(2, enabled_gpio);
 				stringToScreen(tempMaxPrint, enabled_gpio);
 
 				//Min Temperature
-				buffMin=tempActFL;
+				buffMin=tempOUTFL;
 				if(TempMin==-99)
 					{
 						TempMin=buffMin;
@@ -377,7 +384,7 @@ int8_t templiveread(void)
 					}
 				sprintf(tempMinPrint, "Min=%.1f C", TempMin);
 				printf("\n %s", tempMinPrint);
-				goto_ScreenLine(2, enabled_gpio);
+				goto_ScreenLine(3, enabled_gpio);
 				stringToScreen(tempMinPrint, enabled_gpio);
 
 				//Free Temperature Sens Memory

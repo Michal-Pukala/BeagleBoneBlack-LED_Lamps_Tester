@@ -37,6 +37,12 @@ sudo find /sys/devices/bone_capemgr.*/slots > /root/LED_Tester_V1/CurrentRead/pa
 
 struct gpioID enabled_gpio[6];
 
+//Buttons Define
+int AbuttonBack = 41;
+int AbuttonEnter = 17;
+int AbuttonPrev = 15;
+int AbuttonNext = 16;
+
 char *init_current(void)
 {
 
@@ -74,11 +80,12 @@ char *init_current(void)
 	return buffer;
 }
 
-int *current_live_read(char *ainpath)
+int current_live_read(char *ainpath, int *currexp)
 {
 
 	//ainpath=init_current();
-	int *curr;
+	//int *curr;
+	int curr;
 
 	FILE *file = fopen(ainpath, "r");
 	//free(ainpath);
@@ -89,7 +96,7 @@ int *current_live_read(char *ainpath)
 	}
 	else
 	{
-		if(fscanf(file, "%4d", curr))
+		if(fscanf(file, "%x", &curr))
 		{
 			fclose(file);
 		}
@@ -97,11 +104,9 @@ int *current_live_read(char *ainpath)
 		{
 			printf("Error fscanf: %s\n", strerror(errno));
 		}
-		//*current=curr;
 	}
 
-	//free(file);
-
+	*currexp=curr;
 
 	return curr;
 }
@@ -113,24 +118,39 @@ void current_read(void)
 	sleep(1);
 
 	char *ainpath;
+	int currexp;
+
 
 	ainpath=init_current();
 
-	int *current;
+	int current;
+	//int current;
 	float avgcurr=0;
 	float allcurr=0;
 	int i=0;
+	char curr_print[21];
+	char curr_avg_print[21];
 
-	while(i<10)
+	while (is_low(9, AbuttonBack))
 	{
 	sleep(1);
 	i++;
-	current=current_live_read(ainpath);
-	allcurr=allcurr+*current;
+	current=current_live_read(ainpath, &currexp);
+	allcurr=allcurr+current;
 	avgcurr=allcurr/i;
-	printf("\n Current: %d AVG: %f", *current, avgcurr);
+	printf("\n Current: %d AVG: %f", current, avgcurr);
+
+	//LCD Screen
+	sprintf(curr_print, "Current: %d mA ", current);
+	goto_ScreenLine(0, enabled_gpio);
+	stringToScreen(curr_print, enabled_gpio);
+
+	sprintf(curr_avg_print, "Current AVG: %.0f mA ", avgcurr);
+	goto_ScreenLine(1, enabled_gpio);
+	stringToScreen(curr_avg_print, enabled_gpio);
 	//free(current);
 	}
+	//KeyLoop();
 
 }
 

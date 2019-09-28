@@ -35,12 +35,19 @@ void LCDreset(void)
 
 void GPIOreset(void)
 {
+
 	iolib_init();
+	//iolib_setdir(8, 8, DIR_OUT);
+	pin_low(8,8);
+	//iolib_setdir(8, 26, DIR_OUT);
+	pin_low(8,26);
+
 	iolib_free();
 }
 
-LCDreset();
 GPIOreset();
+LCDreset();
+
 
 sleep(1);
 menu_refresh();

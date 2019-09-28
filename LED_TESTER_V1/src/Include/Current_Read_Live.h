@@ -9,7 +9,7 @@
 #define INCLUDE_CURRENT_READ_LIVE_H_
 
 char *init_current(void);
-int *current_live_read(char *ainpath);
+int current_live_read(char *ainpath, int *currexp);
 void current_read(void);
 
 #endif /* INCLUDE_CURRENT_READ_LIVE_H_ */
